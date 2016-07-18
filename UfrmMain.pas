@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, ComCtrls,Inifiles,StrUtils, FileCtrl, Gauges,
-  Tlhelp32, ExtCtrls;
+  Tlhelp32, ExtCtrls,ShellAPI;
 
 type
   TfrmMain = class(TForm)
@@ -15,10 +15,13 @@ type
     Image1: TImage;
     Label1: TLabel;
     Label2: TLabel;
+    Timer1: TTimer;
     procedure BitBtn1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure BitBtn2Click(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
     procedure ReadIni;
@@ -31,7 +34,7 @@ var
 
 implementation
 
-uses USearchFile;
+uses USearchFile, UDM;
 
 {$R *.dfm}
 
@@ -43,14 +46,14 @@ var
 function ShowOptionForm(const pCaption,pTabSheetCaption,pItemInfo,pInifile:Pchar):boolean;stdcall;external 'OptionSetForm.dll';
 function DeCryptStr(aStr: Pchar; aKey: Pchar): Pchar;stdcall;external 'DESCrypt.dll';//解密
 
-function KillTask(ExeFileName: string): boolean;//文件名 
-const 
+function KillTask(ExeFileName: string): boolean;//文件名
+const
   PROCESS_TERMINATE=$0001;
 var
   ContinueLoop,KillResult: LongBool;//C语言中的BOOL
   FSnapshotHandle: THandle;
   FProcessEntry32: TProcessEntry32;
-begin 
+begin
   Result := true;//找不到进程返回true
 
   //CreateToolhelp32Snapshot获取系统运行进程(Process)列表、线程(Thread)列表和指定运行进程的堆 (Heap)列表、调用模块(Module)列表
@@ -112,7 +115,7 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
-  ReadIni;
+//  ReadIni;
 end;
 
 procedure AFindCallBack(const filename:string;const info:tsearchrec;var quit:boolean);
@@ -191,10 +194,10 @@ begin
 end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
-var 
-  f: Textfile; 
+//var
+//  f: Textfile; 
 begin
-  //在该事件中通过运行bat文件的方式更新自身(升级程序) 
+  {//在该事件中通过运行bat文件的方式更新自身(升级程序)
   assignfile(f,ChangeFileExt(Application.ExeName,'.bat'));
   rewrite(f);
   writeln(f,'@echo off');
@@ -206,7 +209,47 @@ begin
   writeln(f,':loop2');
   //writeln(f,'Erase "'+ChangeFileExt(Application.ExeName,'.bat')+'"');
   closefile(f); 
-  winexec(PChar(ChangeFileExt(Application.ExeName,'.bat')),sw_hide);
+  winexec(PChar(ChangeFileExt(Application.ExeName,'.bat')),sw_hide);//}
+end;
+
+procedure TfrmMain.Timer1Timer(Sender: TObject);
+Var
+  RemoteDir:string;
+  DirCount:integer;
+begin
+  (Sender as TTimer).Enabled:=false;
+
+  RemoteDir:='检验信息管理系统';
+
+  {dm.IdFTP1.ChangeDir(RemoteDir);
+  try
+    dm.IdFTP1.List(nil);
+  except
+    on E:Exception do
+    begin
+      MESSAGEDLG('对FTP服务器内容list时报错:'+E.Message,mtError,[mbOK],0);
+      exit;
+    end;
+  end;
+  //ListBox1.Items.Assign(LS);
+  DirCount := dm.IdFTP1.DirectoryListing.Count;
+
+  ProgressBar1.MaxValue:=DirCount;}
+
+  FTP_DownloadDir(dm.IdFTP1,RemoteDir,ExtractFilePath(Application.Exename));
+
+  ProgressBar1.Progress:=ProgressBar1.MaxValue;
+  //showmessage('下载完成');
+
+  if ShellExecute(Handle, 'Open', Pchar(ExtractFilePath(application.ExeName)+RemoteDir+'\'+'aa.txt'), '', '', SW_ShowNormal)<=32 then
+    MessageDlg('aa.txt打开失败!',mtError,[mbOK],0);
+
+  application.Terminate;
+end;
+
+procedure TfrmMain.FormShow(Sender: TObject);
+begin
+  Timer1.Enabled:=true;
 end;
 
 end.

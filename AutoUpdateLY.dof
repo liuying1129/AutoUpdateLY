@@ -134,3 +134,11 @@ OriginalFilename=
 ProductName=
 ProductVersion=1.0.0.0
 Comments=
+[Excluded Packages]
+C:\Program Files (x86)\Raize\RC5\Bin\RaizeComponentsVcl_Design70.bpl=Raize Components 5.2
+C:\Program Files (x86)\Raize\RC5\Bin\RaizeComponentsVclDB_Design70.bpl=Raize Components 5.2 (Data-Aware)
+c:\program files (x86)\borland\delphi7\Projects\Bpl\te_db_dsgn_d7.bpl=ThemeEngine DB Design-Time Package
+c:\program files (x86)\borland\delphi7\Projects\Bpl\DclEhLibDataDrivers70.bpl=EhLib 5.2 DataDrivers
+c:\program files (x86)\borland\delphi7\Projects\Bpl\te_d7.bpl=ThemeEngine (Eugene Kryukov) Run-Time Package
+c:\arquivos de programas\borland\delphi7\Projects\Bpl\dclrxbd7.bpl=RX Library Database Components
+C:\Arquivos de programas\Borland\Delphi7\Projects\Bpl\DclRxDb7.bpl=RX Library Database Components
