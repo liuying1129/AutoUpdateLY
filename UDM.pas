@@ -149,8 +149,9 @@ var
 
     if not SameText(ExtractFileExt(AALocalFile),'.exe') and not SameText(ExtractFileExt(AALocalFile),'.dll') then exit;
 
+    if not DirectoryExists(ExtractFilePath(Application.Exename)+'temp') then ForceDirectories(ExtractFilePath(Application.Exename)+'temp');
     try
-      AAIdFTP.Get(AARemoteFile,'C:\'+AARemoteFile,true,false);
+      AAIdFTP.Get(AARemoteFile,ExtractFilePath(Application.Exename)+'temp\'+AARemoteFile,true,false);
     except
       on E:Exception do
       begin
@@ -160,9 +161,9 @@ var
       end;
     end;
 
-    if GetVersionLY(pchar('C:\'+AARemoteFile))=GetVersionLY(pchar(AALocalFile)) then result:=true;
+    if strpas(GetVersionLY(pchar(ExtractFilePath(Application.Exename)+'temp\'+AARemoteFile)))=strpas(GetVersionLY(pchar(AALocalFile))) then result:=true;
 
-    DeleteFile(pchar('C:\'+AARemoteFile));//删除临时文件
+    DeleteFile(pchar(ExtractFilePath(Application.Exename)+'temp\'+AARemoteFile));//删除临时文件
   end;
   
 begin

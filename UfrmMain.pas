@@ -62,7 +62,7 @@ begin
   CloseHandle(FSnapshotHandle); 
 end; 
 
-procedure AFindCallBack_Target(const filename:string;const info:tsearchrec;var quit:boolean);
+procedure AFindCallBack(const filename:string;const info:tsearchrec;var quit:boolean);
 begin
   KillTask(filename);//杀死进程
 end;
@@ -95,7 +95,7 @@ begin
 
   //先杀死目标文件夹的所有进程
   tmpBool:=false;
-  findfile(tmpBool,gcRemoteDir,'*.*',AFindCallBack_Target,true,true);//ExtractFilePath(Application.Exename)+
+  findfile(tmpBool,gcRemoteDir,'*.*',AFindCallBack,true,true);
   //==========================
   
   dm.IdFTP1.ChangeDir('\');
