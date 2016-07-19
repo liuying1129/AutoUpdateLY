@@ -18,6 +18,7 @@ type
 
 const
   CryptStr='lc';
+  gcRemoteDir='YkSoft';
   
 var
   DM: TDM;
@@ -26,7 +27,7 @@ function DeCryptStr(aStr: Pchar; aKey: Pchar): Pchar;stdcall;external 'DESCrypt.
 function ShowOptionForm(const pCaption,pTabSheetCaption,pItemInfo,pInifile:Pchar):boolean;stdcall;external 'OptionSetForm.dll';
 
 function MakeFtpConn:boolean;
-procedure FTP_DownloadDir(IdFTP:TIdFtp;RemoteDir,LocalDir:string);
+procedure FTP_DownloadDir(AIdFTP:TIdFtp;ARemoteDir,ALocalDir:string);
   
 implementation
 
@@ -90,31 +91,27 @@ begin
   end;
 end;
 
-{ 下载整个目录，并遍历所有子目录
-
+{===============================
+  下载整个目录，并遍历所有子目录
   首先 ChangeDir(Root) 到根目录
-
   然后创建本地目录 + RemoteDir
-
   然后用 list 得到所有目录名
-
   循环判断,进入 RemoteDir 目录内部
-
   如果是目录继续第归。否则 get 该文件到本地目录，当 get 完所有文件后返回上一级目录
-
   用List再取得信息，继续循环
- }
-procedure FTP_DownloadDir(IdFTP:TIdFtp;RemoteDir,LocalDir:string);
+================================}
+procedure FTP_DownloadDir(AIdFTP:TIdFtp;ARemoteDir,ALocalDir:string);
 var
   i,DirCount : integer;
-  Name:string;
+  DirOrFileName:string;
+  tmpLocalDir,tmpLocalDir2:string;
 begin
-  if not DirectoryExists(LocalDir + RemoteDir) then ForceDirectories(LocalDir + RemoteDir);
+  if ALocalDir[length(ALocalDir)]<>'\' then tmpLocalDir2:=ALocalDir+'\' else tmpLocalDir2:=ALocalDir;
 
-  idFTP.ChangeDir(RemoteDir);
+  AIdFTP.ChangeDir(ARemoteDir);
 
   try
-    idFTP.List(nil);
+    AIdFTP.List(nil);
   except
     on E:Exception do
     begin
@@ -122,15 +119,14 @@ begin
       exit;
     end;
   end;
-  //ListBox1.Items.Assign(LS);
 
-  DirCount := idFTP.DirectoryListing.Count;
+  DirCount := AIdFTP.DirectoryListing.Count;
 
   if DirCount <= 0 then
   begin
-    idFTP.ChangeDirUp;
+    AIdFTP.ChangeDirUp;
     try
-      idFTP.List(nil);
+      AIdFTP.List(nil);
     except
       on E:Exception do
       begin
@@ -142,12 +138,12 @@ begin
 
   for i := 0 to DirCount - 1 do
   begin
-    if DirCount <> idFTP.DirectoryListing.Count then
+    if DirCount <> AIdFTP.DirectoryListing.Count then
     begin
       repeat
-        idFTP.ChangeDirUp;
+        AIdFTP.ChangeDirUp;
         try
-          idFTP.List(nil);
+          AIdFTP.List(nil);
         except
           on E:Exception do
           begin
@@ -155,23 +151,31 @@ begin
             exit;
           end;
         end;
-      until DirCount = idFTP.DirectoryListing.Count ;
+      until DirCount = AIdFTP.DirectoryListing.Count ;
     end;
 
-    Name := dm.IdFTP1.DirectoryListing.Items[i].FileName;
+    DirOrFileName := dm.IdFTP1.DirectoryListing.Items[i].FileName;
     
-    if idFTP.DirectoryListing[i].ItemType = ditDirectory then
+    if AIdFTP.DirectoryListing[i].ItemType = ditDirectory then
     begin
-      FTP_DownloadDir(idFTP,Name,LocalDir + RemoteDir + '\');
+      FTP_DownloadDir(AIdFTP,DirOrFileName,tmpLocalDir2+ARemoteDir+'\');
     end else
     begin
-      idFTP.Get(Name,LocalDir + RemoteDir + '\' +Name,true,false);
+      //使下载到的文件、文件夹与下载程序在同一级目录
+      tmpLocalDir:=tmpLocalDir2+ARemoteDir+'\';
+      tmpLocalDir:=StringReplace(tmpLocalDir,'\'+gcRemoteDir+'\','\',[rfIgnoreCase]);
+      if not DirectoryExists(tmpLocalDir) then ForceDirectories(tmpLocalDir);
+      
+      //使下载到的文件、文件夹在下载程序的下级目录
+      //if not DirectoryExists(LocalDir + RemoteDir) then ForceDirectories(LocalDir + RemoteDir);
+
+      AIdFTP.Get(DirOrFileName,tmpLocalDir+DirOrFileName,true,false);
 
       if i = DirCount - 1 then
       begin
-        idFTP.ChangeDirUp;
+        AIdFTP.ChangeDirUp;
         try
-          idFTP.List(nil);
+          AIdFTP.List(nil);
         except
           on E:Exception do
           begin

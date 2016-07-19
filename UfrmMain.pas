@@ -34,7 +34,7 @@ var
 
 implementation
 
-uses USearchFile, UDM;
+uses UDM;
 
 {$R *.dfm}
 
@@ -157,7 +157,7 @@ var
 begin
   //先杀死目标文件夹的所有进程
   tmpBool:=false;
-  findfile(tmpBool,gTargetDir,'*.*',AFindCallBack_Target,true,true);
+  //findfile(tmpBool,gTargetDir,'*.*',AFindCallBack_Target,true,true);
   //==========================
 
   //映射网络驱动器
@@ -188,7 +188,7 @@ begin
   giPos:=0;
 
   gQuit:=false;
-  findfile(gQuit,gSourceDir,'*.*',AFindCallBack,true,true);
+  //findfile(gQuit,gSourceDir,'*.*',AFindCallBack,true,true);
   ProgressBar1.Progress:=ProgressBar1.MaxValue;
   WNetCancelConnection2('X:', CONNECT_UPDATE_PROFILE, False);//断开网络驱动器X:
 end;
@@ -213,13 +213,13 @@ begin
 end;
 
 procedure TfrmMain.Timer1Timer(Sender: TObject);
-Var
-  RemoteDir:string;
-  DirCount:integer;
+//Var
+  //RemoteDir:string;
+  //DirCount:integer;
 begin
   (Sender as TTimer).Enabled:=false;
 
-  RemoteDir:='检验信息管理系统';
+  //RemoteDir:='检验信息管理系统';
 
   {dm.IdFTP1.ChangeDir(RemoteDir);
   try
@@ -236,13 +236,13 @@ begin
 
   ProgressBar1.MaxValue:=DirCount;}
 
-  FTP_DownloadDir(dm.IdFTP1,RemoteDir,ExtractFilePath(Application.Exename));
+  FTP_DownloadDir(dm.IdFTP1,gcRemoteDir,ExtractFilePath(Application.Exename));
 
   ProgressBar1.Progress:=ProgressBar1.MaxValue;
   //showmessage('下载完成');
 
-  if ShellExecute(Handle, 'Open', Pchar(ExtractFilePath(application.ExeName)+RemoteDir+'\'+'aa.txt'), '', '', SW_ShowNormal)<=32 then
-    MessageDlg('aa.txt打开失败!',mtError,[mbOK],0);
+  //if ShellExecute(Handle, 'Open', Pchar(ExtractFilePath(application.ExeName)+RemoteDir+'\'+'aa.txt'), '', '', SW_ShowNormal)<=32 then
+  //  MessageDlg('aa.txt打开失败!',mtError,[mbOK],0);
 
   application.Terminate;
 end;
