@@ -4,7 +4,7 @@ interface
 
 uses
   SysUtils, Classes,IniFiles,Forms, IdBaseComponent, IdComponent,
-  IdTCPConnection, IdTCPClient, IdFTP,IdFTPList,Dialogs;
+  IdTCPConnection, IdTCPClient, IdFTP,IdFTPList,Dialogs,ShellAPI,Windows;
 
 type
   TDM = class(TDataModule)
@@ -22,14 +22,19 @@ const
   
 var
   DM: TDM;
+  giDirOrFileNo:integer;
 
 function DeCryptStr(aStr: Pchar; aKey: Pchar): Pchar;stdcall;external 'DESCrypt.dll';//解密
 function ShowOptionForm(const pCaption,pTabSheetCaption,pItemInfo,pInifile:Pchar):boolean;stdcall;external 'OptionSetForm.dll';
+function GetVersionLY(const AFileName:pchar):pchar;stdcall;external 'LYFunction.dll';
 
 function MakeFtpConn:boolean;
+function MakeExeFile:boolean;
 procedure FTP_DownloadDir(AIdFTP:TIdFtp;ARemoteDir,ALocalDir:string);
   
 implementation
+
+uses UfrmMain;
 
 {$R *.dfm}
 
@@ -91,6 +96,35 @@ begin
   end;
 end;
 
+function MakeExeFile:boolean;
+var
+  ss: string;
+  Ini: tinifile;
+  ExeFile:String;
+  Label labReadIni;
+begin
+  result:=false;
+
+  labReadIni:
+  Ini := tinifile.Create(ChangeFileExt(Application.ExeName,'.ini'));
+  ExeFile := Ini.ReadString('Interface', '执行文件', '');
+  Ini.Free;
+
+  if FileExists(ExeFile) then
+  begin
+    if ShellExecute(Application.Handle, 'Open', Pchar(ExeFile), '', '', SW_ShowNormal)>32 then
+      result:=true
+    else MessageDlg(ExeFile+'打开失败!',mtError,[mbOK],0);
+  end;
+
+  if not result then
+  begin
+    ss:='执行文件'+#2+'File'+#2+#2+'0'+#2+'表示升级后应该执行的程序'+#2+#3;
+    if ShowOptionForm('设置','Interface',Pchar(ss),Pchar(ChangeFileExt(Application.ExeName,'.ini'))) then
+      goto labReadIni else application.Terminate;
+  end;
+end;
+
 {===============================
   下载整个目录，并遍历所有子目录
   首先 ChangeDir(Root) 到根目录
@@ -104,8 +138,38 @@ procedure FTP_DownloadDir(AIdFTP:TIdFtp;ARemoteDir,ALocalDir:string);
 var
   i,DirCount : integer;
   DirOrFileName:string;
-  tmpLocalDir,tmpLocalDir2:string;
+  //tmpLocalDir:string;
+  tmpLocalDir2:string;
+
+  function SameVersion(AAIdFTP:TIdFtp;AARemoteFile:string;AALocalFile:string):boolean;
+  begin
+    result:=false;
+
+    if not FileExists(AALocalFile) then exit;
+
+    if not SameText(ExtractFileExt(AALocalFile),'.exe') and not SameText(ExtractFileExt(AALocalFile),'.dll') then exit;
+
+    try
+      AAIdFTP.Get(AARemoteFile,'C:\'+AARemoteFile,true,false);
+    except
+      on E:Exception do
+      begin
+        MESSAGEDLG('下载文件到临时目录报错:'+E.Message,mtError,[mbOK],0);
+        result:=true;
+        exit;
+      end;
+    end;
+
+    if GetVersionLY(pchar('C:\'+AARemoteFile))=GetVersionLY(pchar(AALocalFile)) then result:=true;
+
+    DeleteFile(pchar('C:\'+AARemoteFile));//删除临时文件
+  end;
+  
 begin
+  //进度条展示
+  inc(giDirOrFileNo);
+  frmMain.ProgressBar1.Progress:=giDirOrFileNo;
+  
   if ALocalDir[length(ALocalDir)]<>'\' then tmpLocalDir2:=ALocalDir+'\' else tmpLocalDir2:=ALocalDir;
 
   AIdFTP.ChangeDir(ARemoteDir);
@@ -154,22 +218,43 @@ begin
       until DirCount = AIdFTP.DirectoryListing.Count ;
     end;
 
-    DirOrFileName := dm.IdFTP1.DirectoryListing.Items[i].FileName;
+    DirOrFileName := AIdFTP.DirectoryListing.Items[i].FileName;
     
     if AIdFTP.DirectoryListing[i].ItemType = ditDirectory then
     begin
       FTP_DownloadDir(AIdFTP,DirOrFileName,tmpLocalDir2+ARemoteDir+'\');
     end else
     begin
-      //使下载到的文件、文件夹与下载程序在同一级目录
-      tmpLocalDir:=tmpLocalDir2+ARemoteDir+'\';
-      tmpLocalDir:=StringReplace(tmpLocalDir,'\'+gcRemoteDir+'\','\',[rfIgnoreCase]);
-      if not DirectoryExists(tmpLocalDir) then ForceDirectories(tmpLocalDir);
-      
-      //使下载到的文件、文件夹在下载程序的下级目录
-      //if not DirectoryExists(LocalDir + RemoteDir) then ForceDirectories(LocalDir + RemoteDir);
+      {//使下载到的文件、文件夹与下载程序在同一级目录
+      //如在同一级目录，DESCrypt.dll、OptionSetForm.dll、LYFunction.dll无法更新
+      if not SameVersion(AIdFTP,DirOrFileName,tmpLocalDir+DirOrFileName) then
+      begin
+        tmpLocalDir:=tmpLocalDir2+ARemoteDir+'\';
+        tmpLocalDir:=StringReplace(tmpLocalDir,'\'+gcRemoteDir+'\','\',[rfIgnoreCase]);
+        if not DirectoryExists(tmpLocalDir) then ForceDirectories(tmpLocalDir);
+        try
+          AIdFTP.Get(DirOrFileName,tmpLocalDir+DirOrFileName,true,false);
+        except
+          on E:Exception do
+          begin
+            MESSAGEDLG('下载文件报错:'+E.Message,mtError,[mbOK],0);
+          end;
+        end;
+      end;//}
 
-      AIdFTP.Get(DirOrFileName,tmpLocalDir+DirOrFileName,true,false);
+      //使下载到的文件、文件夹在下载程序的下级目录
+      if not SameVersion(AIdFTP,DirOrFileName,tmpLocalDir2+ARemoteDir+'\'+DirOrFileName) then
+      begin
+        if not DirectoryExists(tmpLocalDir2+ARemoteDir) then ForceDirectories(tmpLocalDir2+ARemoteDir);
+        try
+          AIdFTP.Get(DirOrFileName,tmpLocalDir2+ARemoteDir+'\'+DirOrFileName,true,false);
+        except
+          on E:Exception do
+          begin
+            MESSAGEDLG('下载文件报错:'+E.Message,mtError,[mbOK],0);
+          end;
+        end;
+      end;//}
 
       if i = DirCount - 1 then
       begin

@@ -3,7 +3,8 @@ program AutoUpdateLY;
 uses
   Forms,
   UfrmMain in 'UfrmMain.pas' {frmMain},
-  UDM in 'UDM.pas' {DM: TDataModule};
+  UDM in 'UDM.pas' {DM: TDataModule},
+  USearchFile in 'USearchFile.pas';
 
 {$R *.res}
 
