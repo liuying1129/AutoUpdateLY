@@ -4,11 +4,13 @@ interface
 
 uses
   SysUtils, Classes,IniFiles,Forms, IdBaseComponent, IdComponent,
-  IdTCPConnection, IdTCPClient, IdFTP,IdFTPList,Dialogs,ShellAPI,Windows;
+  IdTCPConnection, IdTCPClient, IdFTP,IdFTPList,Dialogs,ShellAPI,
+  Windows,IdAntiFreezeBase, IdAntiFreeze;
 
 type
   TDM = class(TDataModule)
     IdFTP1: TIdFTP;
+    IdAntiFreeze1: TIdAntiFreeze;
     procedure DataModuleCreate(Sender: TObject);
   private
     { Private declarations }

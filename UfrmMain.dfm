@@ -4,8 +4,8 @@ object frmMain: TfrmMain
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = #22312#32447#21319#32423
-  ClientHeight = 241
-  ClientWidth = 432
+  ClientHeight = 232
+  ClientWidth = 414
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
   Font.Color = clWindowText
@@ -18,7 +18,7 @@ object frmMain: TfrmMain
   PixelsPerInch = 96
   TextHeight = 13
   object ProgressBar1: TGauge
-    Left = 140
+    Left = 124
     Top = 48
     Width = 281
     Height = 41
@@ -28,8 +28,8 @@ object frmMain: TfrmMain
   object Image1: TImage
     Left = 2
     Top = 1
-    Width = 129
-    Height = 239
+    Width = 115
+    Height = 229
     Picture.Data = {
       07544269746D617082370100424D823701000000000036000000280000007300
       0000E500000001001800000000004C370100C40E0000C40E0000000000000000
@@ -2524,11 +2524,10 @@ object frmMain: TfrmMain
       E74E4EE74E4EE74E4EE44A4ADA564C32CE4426CA3926CA394BD65EFCFAF5FAF6
       F3FAF6F3FBF3EAFBF3EAFBF3EAFBF3EAFDEEDFFDEEDFFDEEDFFDEEDFFBEAD8FB
       EAD8FBEAD8FBEAD8FAE6D0000000}
-    Stretch = True
   end
   object Label1: TLabel
-    Left = 134
-    Top = 218
+    Left = 118
+    Top = 212
     Width = 294
     Height = 13
     Caption = #27880':'#21319#32423#36807#31243#21487#33021#20250#20851#38381#19968#20123#31243#24207','#35831#20570#22909#20445#23384#24037#20316'!'
@@ -2543,7 +2542,7 @@ object frmMain: TfrmMain
     Enabled = False
     Interval = 500
     OnTimer = Timer1Timer
-    Left = 144
+    Left = 128
     Top = 8
   end
 end

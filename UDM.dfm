@@ -14,4 +14,10 @@ object DM: TDM
     Left = 48
     Top = 24
   end
+  object IdAntiFreeze1: TIdAntiFreeze
+    IdleTimeOut = 50
+    OnlyWhenIdle = False
+    Left = 168
+    Top = 24
+  end
 end

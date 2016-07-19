@@ -97,7 +97,7 @@ begin
   tmpBool:=false;
   findfile(tmpBool,gcRemoteDir,'*.*',AFindCallBack,true,true);
   //==========================
-  
+
   dm.IdFTP1.ChangeDir('\');
   FTP_DownloadDir(dm.IdFTP1,gcRemoteDir,ExtractFilePath(Application.Exename));
 
