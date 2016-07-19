@@ -78,15 +78,23 @@ begin
   Save_Cursor := Screen.Cursor;
   Screen.Cursor := crHourGlass;    { Show hourglass cursor }
 
-  dm.IdFTP1.ChangeDir(gcRemoteDir);
+  try
+    dm.IdFTP1.ChangeDir(gcRemoteDir);
+  except
+    on E:Exception do
+    begin
+      MESSAGEDLG('定位远程目录时报错:'+E.Message,mtError,[mbOK],0);
+      application.Terminate;
+    end;
+  end;
+  
   try
     dm.IdFTP1.List(nil);
   except
     on E:Exception do
     begin
-      Screen.Cursor := Save_Cursor;  { Always restore to normal }
       MESSAGEDLG('对FTP服务器内容list时报错:'+E.Message,mtError,[mbOK],0);
-      exit;
+      application.Terminate;
     end;
   end;
   DirCount := dm.IdFTP1.DirectoryListing.Count;
