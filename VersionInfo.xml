@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dirStructure>
+	<Folder name="a">
+		<File name="a.txt" version=""></File>
+	</Folder>
+	<Folder name="cd">
+		<File name="c.txt" version=""></File>
+		<File name="d.txt" version=""></File>
+		<Folder name="e">
+			<File name="e.txt" version=""></File>			
+		</Folder>	
+	</Folder>
+	<File name="ProYkLis.exe" version="0.0.7.2"></File>
+	<File name="Data2LisSvr.dll" version="0.0.7.2"></File>
+	<File name="PtImageRW.dll" version="2, 0, 0, 0"></File>
+	<File name="PtQREncode.dll" version="2, 0, 0, 0"></File>
+	<File name="QC.dll" version=""></File>
+</dirStructure>

@@ -4,9 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Buttons, ComCtrls,Inifiles,StrUtils, Gauges,
-  Tlhelp32, ExtCtrls,ShellAPI, IdBaseComponent, IdComponent,
-  IdTCPConnection, IdTCPClient, IdFTP;
+  Dialogs, StdCtrls, Buttons, ComCtrls,Inifiles,StrUtils, Gauges,Tlhelp32, 
+  XMLIntf,XMLDoc, ExtCtrls;
 
 type
   TfrmMain = class(TForm)
@@ -16,6 +15,7 @@ type
     Timer1: TTimer;
     procedure Timer1Timer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
   public
@@ -69,9 +69,13 @@ end;
 
 procedure TfrmMain.Timer1Timer(Sender: TObject);
 Var
-  DirCount:integer;
+  DirCount,j:integer;
   Save_Cursor:TCursor;
   tmpBool:boolean;
+  ss:TStringStream;
+  XMLDocument:IXMLDocument;
+  XMLNode:IXMLNode;
+  sVersion:string;
 begin
   (Sender as TTimer).Enabled:=false;
 
@@ -101,6 +105,44 @@ begin
 
   ProgressBar1.MaxValue:=DirCount;//进度条设置
 
+  ss:=TStringStream.Create('');
+  try
+    dm.IdFTP1.Get('VersionInfo.xml',ss);//无此文件会抛出异常
+  except
+    on E:Exception do
+    begin
+      ss.Free;
+      MESSAGEDLG('下载版本信息文件到Stream报错:'+E.Message,mtError,[mbOK],0);
+      application.Terminate;
+    end;
+  end;
+  XMLDocument:=TXMLDocument.Create(nil);
+  try
+    XMLDocument.LoadFromStream(ss);//不规范的XML会抛出异常
+  except
+    on E:Exception do
+    begin
+      ss.Free;
+      MESSAGEDLG('LoadFromStream报错:'+E.Message,mtError,[mbOK],0);
+      application.Terminate;
+    end;
+  end;
+  for j :=0  to XMLDocument.DocumentElement.ChildNodes.Count-1 do
+  begin
+    XMLNode:=XMLDocument.DocumentElement.ChildNodes[j];
+
+    if not SameText(XMLNode.NodeName,'file') then continue;
+
+    //属性名称是大小写敏感，故XML中必须写成name、version
+    if XMLNode.Attributes['name']=null then continue;//该节点无name属性时
+    if XMLNode.Attributes['name']='' then continue;
+    if XMLNode.Attributes['version']=null then//该节点无version属性时
+      sVersion:='' else sVersion:=XMLNode.Attributes['version'];
+
+    gslFileVersion.Add(XMLNode.Attributes['name']+'='+sVersion);
+  end;
+  ss.free;
+
   //先杀死目标文件夹的所有进程
   tmpBool:=false;
   findfile(tmpBool,gcRemoteDir,'*.*',AFindCallBack,true,true);
@@ -122,6 +164,11 @@ procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   Timer1.Interval:=300;
   Timer1.Enabled:=true;
+end;
+
+procedure TfrmMain.FormDestroy(Sender: TObject);
+begin
+  gslFileVersion.Free;
 end;
 
 end.

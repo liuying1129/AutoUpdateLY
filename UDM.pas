@@ -25,6 +25,7 @@ const
 var
   DM: TDM;
   giDirOrFileNo:integer;
+  gslFileVersion:TStrings;
 
 function DeCryptStr(aStr: Pchar; aKey: Pchar): Pchar;stdcall;external 'DESCrypt.dll';//解密
 function ShowOptionForm(const pCaption,pTabSheetCaption,pItemInfo,pInifile:Pchar):boolean;stdcall;external 'OptionSetForm.dll';
@@ -42,6 +43,8 @@ uses UfrmMain;
 
 procedure TDM.DataModuleCreate(Sender: TObject);
 begin
+  gslFileVersion:=TStringList.Create;
+
   MakeFtpConn;
 end;
 
@@ -143,29 +146,33 @@ var
   //tmpLocalDir:string;
   tmpLocalDir2:string;
 
-  function SameVersion(AAIdFTP:TIdFtp;AARemoteFile:string;AALocalFile:string):boolean;
+  function ifDownLoad(AAIdFTP:TIdFtp;AARemoteFile:string;AALocalFile:string):boolean;
   begin
-    result:=false;
+    result:=true;
+
+    if SameText(AARemoteFile,'VersionInfo.xml') then
+    begin
+      result:=false;
+      exit;
+    end;
 
     if not FileExists(AALocalFile) then exit;
 
     if not SameText(ExtractFileExt(AALocalFile),'.exe') and not SameText(ExtractFileExt(AALocalFile),'.dll') then exit;
 
-    if not DirectoryExists(ExtractFilePath(Application.Exename)+'temp') then ForceDirectories(ExtractFilePath(Application.Exename)+'temp');
-    try
-      AAIdFTP.Get(AARemoteFile,ExtractFilePath(Application.Exename)+'temp\'+AARemoteFile,true,false);
-    except
-      on E:Exception do
-      begin
-        MESSAGEDLG('下载文件到临时目录报错:'+E.Message,mtError,[mbOK],0);
-        result:=true;
-        exit;
-      end;
+    //xml中未配置该exe、dll
+    if gslFileVersion.IndexOfName(AARemoteFile)<0 then
+    begin
+      result:=false;
+      exit;
     end;
 
-    if strpas(GetVersionLY(pchar(ExtractFilePath(Application.Exename)+'temp\'+AARemoteFile)))=strpas(GetVersionLY(pchar(AALocalFile))) then result:=true;
-
-    DeleteFile(pchar(ExtractFilePath(Application.Exename)+'temp\'+AARemoteFile));//删除临时文件
+    //版本号相同
+    if SameText(gslFileVersion.Values[AARemoteFile],strpas(GetVersionLY(pchar(AALocalFile)))) then
+    begin
+      result:=false;
+      exit;
+    end;
   end;
   
 begin
@@ -230,12 +237,13 @@ begin
     begin
       {//使下载到的文件、文件夹与下载程序在同一级目录
       //如在同一级目录，DESCrypt.dll、OptionSetForm.dll、LYFunction.dll无法更新
-      if not SameVersion(AIdFTP,DirOrFileName,tmpLocalDir+DirOrFileName) then
+      if ifDownLoad(AIdFTP,DirOrFileName,tmpLocalDir+DirOrFileName) then
       begin
         tmpLocalDir:=tmpLocalDir2+ARemoteDir+'\';
         tmpLocalDir:=StringReplace(tmpLocalDir,'\'+gcRemoteDir+'\','\',[rfIgnoreCase]);
         if not DirectoryExists(tmpLocalDir) then ForceDirectories(tmpLocalDir);
         try
+          //Showmessage(DirOrFileName);
           AIdFTP.Get(DirOrFileName,tmpLocalDir+DirOrFileName,true,false);
         except
           on E:Exception do
@@ -246,10 +254,11 @@ begin
       end;//}
 
       //使下载到的文件、文件夹在下载程序的下级目录
-      if not SameVersion(AIdFTP,DirOrFileName,tmpLocalDir2+ARemoteDir+'\'+DirOrFileName) then
+      if ifDownLoad(AIdFTP,DirOrFileName,tmpLocalDir2+ARemoteDir+'\'+DirOrFileName) then
       begin
         if not DirectoryExists(tmpLocalDir2+ARemoteDir) then ForceDirectories(tmpLocalDir2+ARemoteDir);
         try
+          //Showmessage(DirOrFileName);
           AIdFTP.Get(DirOrFileName,tmpLocalDir2+ARemoteDir+'\'+DirOrFileName,true,false);
         except
           on E:Exception do
