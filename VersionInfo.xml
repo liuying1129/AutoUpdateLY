@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <dirStructure>
-	<Folder name="a">
+	<Folder name="FolderA">
 		<File name="a.txt" version=""></File>
 	</Folder>
-	<Folder name="cd">
+	<Folder name="FolderB">
 		<File name="c.txt" version=""></File>
 		<File name="d.txt" version=""></File>
-		<Folder name="e">
+		<Folder name="FolderB1">
 			<File name="e.txt" version=""></File>			
 		</Folder>	
 	</Folder>
