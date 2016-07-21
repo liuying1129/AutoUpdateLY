@@ -143,8 +143,6 @@ begin
   end;
   ss.free;
 
-  showmessage(gslFileVersion.Text);
-
   //先杀死目标文件夹的所有进程
   tmpBool:=false;
   findfile(tmpBool,gcRemoteDir,'*.*',AFindCallBack,true,true);
