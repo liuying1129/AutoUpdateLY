@@ -176,10 +176,6 @@ var
   end;
   
 begin
-  //进度条展示
-  inc(giDirOrFileNo);
-  frmMain.ProgressBar1.Progress:=giDirOrFileNo;
-  
   if ALocalDir[length(ALocalDir)]<>'\' then tmpLocalDir2:=ALocalDir+'\' else tmpLocalDir2:=ALocalDir;
 
   AIdFTP.ChangeDir(ARemoteDir);
@@ -212,6 +208,10 @@ begin
 
   for i := 0 to DirCount - 1 do
   begin
+    //进度条展示
+    inc(giDirOrFileNo);
+    frmMain.ProgressBar1.Progress:=giDirOrFileNo;
+  
     if DirCount <> AIdFTP.DirectoryListing.Count then
     begin
       repeat

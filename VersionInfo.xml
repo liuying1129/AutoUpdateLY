@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <dirStructure>
 	<Folder name="a">
 		<File name="a.txt" version=""></File>
@@ -15,4 +15,5 @@
 	<File name="PtImageRW.dll" version="2, 0, 0, 0"></File>
 	<File name="PtQREncode.dll" version="2, 0, 0, 0"></File>
 	<File name="QC.dll" version=""></File>
+	<File name="中国abc海" version=""></File>
 </dirStructure>
