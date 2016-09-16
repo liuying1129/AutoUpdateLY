@@ -20,7 +20,7 @@ type
 
 const
   CryptStr='lc';
-  gcRemoteDir='YkSoft';
+  gcRemoteRootDir='YkSoft';
   gcVersionInfoFile='VersionInfo.xml';
   
 var
@@ -31,6 +31,7 @@ var
 function DeCryptStr(aStr: Pchar; aKey: Pchar): Pchar;stdcall;external 'DESCrypt.dll';//解密
 function ShowOptionForm(const pCaption,pTabSheetCaption,pItemInfo,pInifile:Pchar):boolean;stdcall;external 'OptionSetForm.dll';
 function GetVersionLY(const AFileName:pchar):pchar;stdcall;external 'LYFunction.dll';
+procedure WriteLog(const ALogStr: Pchar);stdcall;external 'LYFunction.dll';
 
 function MakeFtpConn:boolean;
 function MakeExeFile:boolean;
@@ -147,11 +148,16 @@ var
   //tmpLocalDir:string;
   tmpLocalDir2:string;
 
-  function ifDownLoad(AAIdFTP:TIdFtp;AARemoteFile:string;AALocalFile:string):boolean;
+  function ifDownLoad(AAIdFTP:TIdFtp;AALocalFile:string):boolean;
+  var
+    keyName:string;
   begin
     result:=true;
 
-    if SameText(AARemoteFile,'VersionInfo.xml') then
+    keyName:=copy(AALocalFile,pos('\'+gcRemoteRootDir+'\',AALocalFile),MaxInt);
+    keyName:=StringReplace(keyName,'\'+gcRemoteRootDir+'\','',[rfIgnoreCase]);
+
+    if SameText(keyName,'VersionInfo.xml') then
     begin
       result:=false;
       exit;
@@ -162,14 +168,14 @@ var
     if not SameText(ExtractFileExt(AALocalFile),'.exe') and not SameText(ExtractFileExt(AALocalFile),'.dll') then exit;
 
     //xml中未配置该exe、dll
-    if gslFileVersion.IndexOfName(AARemoteFile)<0 then
+    if gslFileVersion.IndexOfName(keyName)<0 then
     begin
       result:=false;
       exit;
     end;
 
     //版本号相同
-    if SameText(gslFileVersion.Values[AARemoteFile],strpas(GetVersionLY(pchar(AALocalFile)))) then
+    if SameText(gslFileVersion.Values[keyName],strpas(GetVersionLY(pchar(AALocalFile)))) then
     begin
       result:=false;
       exit;
@@ -255,16 +261,16 @@ begin
       end;//}
 
       //使下载到的文件、文件夹在下载程序的下级目录
-      if ifDownLoad(AIdFTP,DirOrFileName,tmpLocalDir2+ARemoteDir+'\'+DirOrFileName) then
+      if ifDownLoad(AIdFTP,tmpLocalDir2+ARemoteDir+'\'+DirOrFileName) then
       begin
         if not DirectoryExists(tmpLocalDir2+ARemoteDir) then ForceDirectories(tmpLocalDir2+ARemoteDir);
         try
-          //Showmessage(DirOrFileName);
           AIdFTP.Get(DirOrFileName,tmpLocalDir2+ARemoteDir+'\'+DirOrFileName,true,false);
+          WriteLog(pchar('文件['+tmpLocalDir2+ARemoteDir+'\'+DirOrFileName+']下载成功'));
         except
           on E:Exception do
           begin
-            MESSAGEDLG('下载文件报错:'+E.Message,mtError,[mbOK],0);
+            MESSAGEDLG('下载文件['+tmpLocalDir2+ARemoteDir+'\'+DirOrFileName+']报错:'+E.Message,mtError,[mbOK],0);
           end;
         end;
       end;//}

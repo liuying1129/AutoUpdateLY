@@ -69,7 +69,7 @@ end;
 
 procedure TfrmMain.Timer1Timer(Sender: TObject);
 Var
-  DirCount,j:integer;
+  j:integer;
   Save_Cursor:TCursor;
   tmpBool:boolean;
   ss:TStringStream;
@@ -83,28 +83,15 @@ begin
   Screen.Cursor := crHourGlass;    { Show hourglass cursor }
 
   try
-    dm.IdFTP1.ChangeDir(gcRemoteDir);
+    dm.IdFTP1.ChangeDir(gcRemoteRootDir);
   except
     on E:Exception do
     begin
-      MESSAGEDLG('定位远程目录['+gcRemoteDir+']时报错:'+E.Message,mtError,[mbOK],0);
+      MESSAGEDLG('定位远程根目录['+gcRemoteRootDir+']时报错:'+E.Message,mtError,[mbOK],0);
       application.Terminate;
     end;
   end;
   
-  try
-    dm.IdFTP1.List(nil);
-  except
-    on E:Exception do
-    begin
-      MESSAGEDLG('对FTP服务器目录['+dm.IdFTP1.RetrieveCurrentDir+']list时报错:'+E.Message,mtError,[mbOK],0);
-      application.Terminate;
-    end;
-  end;
-  DirCount := dm.IdFTP1.DirectoryListing.Count;
-
-  ProgressBar1.MaxValue:=DirCount;//进度条设置
-
   ss:=TStringStream.Create('');
   try
     dm.IdFTP1.Get(gcVersionInfoFile,ss);//无此文件会抛出异常
@@ -143,13 +130,15 @@ begin
   end;
   ss.free;
 
+  ProgressBar1.MaxValue:=gslFileVersion.Count;//进度条设置
+
   //先杀死目标文件夹的所有进程
   tmpBool:=false;
-  findfile(tmpBool,gcRemoteDir,'*.*',AFindCallBack,true,true);
+  findfile(tmpBool,gcRemoteRootDir,'*.*',AFindCallBack,true,true);
   //==========================
 
-  dm.IdFTP1.ChangeDir('\');
-  FTP_DownloadDir(dm.IdFTP1,gcRemoteDir,ExtractFilePath(Application.Exename));
+  dm.IdFTP1.ChangeDir('\');//定位到FTP根目录
+  FTP_DownloadDir(dm.IdFTP1,gcRemoteRootDir,ExtractFilePath(Application.Exename));
 
   ProgressBar1.Progress:=ProgressBar1.MaxValue;//进度条展示
 
