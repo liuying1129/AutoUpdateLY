@@ -186,7 +186,7 @@ begin
   except
     on E:Exception do
     begin
-      MESSAGEDLG('对FTP服务器内容list时报错:'+E.Message,mtError,[mbOK],0);
+      MESSAGEDLG('对FTP服务器目录['+AIdFTP.RetrieveCurrentDir+']list时报错:'+E.Message,mtError,[mbOK],0);
       exit;
     end;
   end;
@@ -201,7 +201,7 @@ begin
     except
       on E:Exception do
       begin
-        MESSAGEDLG('对FTP服务器内容list时报错:'+E.Message,mtError,[mbOK],0);
+        MESSAGEDLG('对FTP服务器目录['+AIdFTP.RetrieveCurrentDir+']list时报错:'+E.Message,mtError,[mbOK],0);
         exit;
       end;
     end;
@@ -222,7 +222,7 @@ begin
         except
           on E:Exception do
           begin
-            MESSAGEDLG('对FTP服务器内容list时报错:'+E.Message,mtError,[mbOK],0);
+            MESSAGEDLG('对FTP服务器目录['+AIdFTP.RetrieveCurrentDir+']list时报错:'+E.Message,mtError,[mbOK],0);
             exit;
           end;
         end;
@@ -277,7 +277,7 @@ begin
         except
           on E:Exception do
           begin
-            MESSAGEDLG('对FTP服务器内容list时报错:'+E.Message,mtError,[mbOK],0);
+            MESSAGEDLG('对FTP服务器目录['+AIdFTP.RetrieveCurrentDir+']list时报错:'+E.Message,mtError,[mbOK],0);
             exit;
           end;
         end;
