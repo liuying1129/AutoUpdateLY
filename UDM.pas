@@ -5,7 +5,7 @@ interface
 uses
   SysUtils, Classes,IniFiles,Forms, IdBaseComponent, IdComponent,
   IdTCPConnection, IdTCPClient, IdFTP,IdFTPList,Dialogs,ShellAPI,
-  Windows,IdAntiFreezeBase, IdAntiFreeze;
+  Windows,IdAntiFreezeBase, IdAntiFreeze,Tlhelp32;
 
 type
   TDM = class(TDataModule)
@@ -42,6 +42,38 @@ implementation
 uses UfrmMain;
 
 {$R *.dfm}
+
+function KillTask(ExeFileName: string): boolean;
+//杀死操作系统中运行的所有文件名为ExeFileName的程序
+const
+  PROCESS_TERMINATE=$0001;
+var
+  ContinueLoop,KillResult: LongBool;//C语言中的BOOL
+  FSnapshotHandle: THandle;
+  FProcessEntry32: TProcessEntry32;
+begin
+  Result := true;//找不到进程返回true
+
+  //CreateToolhelp32Snapshot获取系统运行进程(Process)列表、线程(Thread)列表和指定运行进程的堆 (Heap)列表、调用模块(Module)列表
+  //如果函数运行成功将返回一个非零"Snapshot"句柄
+  FSnapshotHandle := CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+  //TPROCESSENTRY32是在Process32First、Process32Next两个函数所用到的数据结构.使用这两个数据结构的变量时要先设置dwSize的值
+  FProcessEntry32.dwSize := Sizeof(FProcessEntry32);
+  //Process32First对"Snapshot"所包含的列表进行息获取
+  ContinueLoop := Process32First(FSnapshotHandle,FProcessEntry32);
+
+  while integer(ContinueLoop)<>0 do
+  begin 
+    if UpperCase(ExtractFileName(FProcessEntry32.szExeFile)) = UpperCase(ExtractFileName(ExeFileName)) then
+    begin
+      KillResult := TerminateProcess(OpenProcess(PROCESS_TERMINATE, false,FProcessEntry32.th32ProcessID), 0);
+      if integer(KillResult)=0 then result:=false;
+    end;
+    ContinueLoop := Process32Next(FSnapshotHandle,FProcessEntry32);
+  end;
+
+  CloseHandle(FSnapshotHandle); 
+end;
 
 procedure TDM.DataModuleCreate(Sender: TObject);
 begin
@@ -264,6 +296,10 @@ begin
       if ifDownLoad(AIdFTP,tmpLocalDir2+ARemoteDir+'\'+DirOrFileName) then
       begin
         if not DirectoryExists(tmpLocalDir2+ARemoteDir) then ForceDirectories(tmpLocalDir2+ARemoteDir);
+
+        KillTask(DirOrFileName);//杀死进程
+        Sleep(20);//测试时，最少需要10ms
+
         try
           AIdFTP.Get(DirOrFileName,tmpLocalDir2+ARemoteDir+'\'+DirOrFileName,true,false);
           WriteLog(pchar('文件['+tmpLocalDir2+ARemoteDir+'\'+DirOrFileName+']下载成功'));

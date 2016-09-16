@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Buttons, ComCtrls,Inifiles,StrUtils, Gauges,Tlhelp32, 
+  Dialogs, StdCtrls, Buttons, ComCtrls,Inifiles,StrUtils, Gauges,
   XMLIntf,XMLDoc, ExtCtrls;
 
 type
@@ -31,47 +31,10 @@ uses UDM, USearchFile;
 
 {$R *.dfm}
 
-function KillTask(ExeFileName: string): boolean;//文件名
-const
-  PROCESS_TERMINATE=$0001;
-var
-  ContinueLoop,KillResult: LongBool;//C语言中的BOOL
-  FSnapshotHandle: THandle;
-  FProcessEntry32: TProcessEntry32;
-begin
-  Result := true;//找不到进程返回true
-
-  //CreateToolhelp32Snapshot获取系统运行进程(Process)列表、线程(Thread)列表和指定运行进程的堆 (Heap)列表、调用模块(Module)列表
-  //如果函数运行成功将返回一个非零"Snapshot"句柄
-  FSnapshotHandle := CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-  //TPROCESSENTRY32是在Process32First、Process32Next两个函数所用到的数据结构.使用这两个数据结构的变量时要先设置dwSize的值
-  FProcessEntry32.dwSize := Sizeof(FProcessEntry32);
-  //Process32First对"Snapshot"所包含的列表进行息获取
-  ContinueLoop := Process32First(FSnapshotHandle,FProcessEntry32);
-
-  while integer(ContinueLoop)<>0 do
-  begin 
-    if UpperCase(ExtractFileName(FProcessEntry32.szExeFile)) = UpperCase(ExtractFileName(ExeFileName)) then
-    begin
-      KillResult := TerminateProcess(OpenProcess(PROCESS_TERMINATE, false,FProcessEntry32.th32ProcessID), 0);
-      if integer(KillResult)=0 then result:=false;
-    end;
-    ContinueLoop := Process32Next(FSnapshotHandle,FProcessEntry32);
-  end;
-
-  CloseHandle(FSnapshotHandle); 
-end; 
-
-procedure AFindCallBack(const filename:string;const info:tsearchrec;var quit:boolean);
-begin
-  KillTask(filename);//杀死进程
-end;
-
 procedure TfrmMain.Timer1Timer(Sender: TObject);
 Var
   j:integer;
   Save_Cursor:TCursor;
-  tmpBool:boolean;
   ss:TStringStream;
   XMLDocument:IXMLDocument;
   XMLNode:IXMLNode;
@@ -131,11 +94,6 @@ begin
   ss.free;
 
   ProgressBar1.MaxValue:=gslFileVersion.Count;//进度条设置
-
-  //先杀死目标文件夹的所有进程
-  tmpBool:=false;
-  findfile(tmpBool,gcRemoteRootDir,'*.*',AFindCallBack,true,true);
-  //==========================
 
   dm.IdFTP1.ChangeDir('\');//定位到FTP根目录
   FTP_DownloadDir(dm.IdFTP1,gcRemoteRootDir,ExtractFilePath(Application.Exename));
