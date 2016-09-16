@@ -27,7 +27,7 @@ var
 
 implementation
 
-uses UDM, USearchFile;
+uses UDM;
 
 {$R *.dfm}
 
