@@ -21,6 +21,7 @@ type
 const
   CryptStr='lc';
   gcRemoteDir='YkSoft';
+  gcVersionInfoFile='VersionInfo.xml';
   
 var
   DM: TDM;

@@ -87,7 +87,7 @@ begin
   except
     on E:Exception do
     begin
-      MESSAGEDLG('定位远程目录时报错:'+E.Message,mtError,[mbOK],0);
+      MESSAGEDLG('定位远程目录['+gcRemoteDir+']时报错:'+E.Message,mtError,[mbOK],0);
       application.Terminate;
     end;
   end;
@@ -97,7 +97,7 @@ begin
   except
     on E:Exception do
     begin
-      MESSAGEDLG('对FTP服务器内容list时报错:'+E.Message,mtError,[mbOK],0);
+      MESSAGEDLG('对FTP服务器目录['+gcRemoteDir+']list时报错:'+E.Message,mtError,[mbOK],0);
       application.Terminate;
     end;
   end;
@@ -107,12 +107,12 @@ begin
 
   ss:=TStringStream.Create('');
   try
-    dm.IdFTP1.Get('VersionInfo.xml',ss);//无此文件会抛出异常
+    dm.IdFTP1.Get(gcVersionInfoFile,ss);//无此文件会抛出异常
   except
     on E:Exception do
     begin
       ss.Free;
-      MESSAGEDLG('下载版本信息文件到Stream报错:'+E.Message,mtError,[mbOK],0);
+      MESSAGEDLG('下载版本信息文件['+gcVersionInfoFile+']到Stream报错:'+E.Message,mtError,[mbOK],0);
       application.Terminate;
     end;
   end;
@@ -123,7 +123,7 @@ begin
     on E:Exception do
     begin
       ss.Free;
-      MESSAGEDLG('LoadFromStream报错:'+E.Message,mtError,[mbOK],0);
+      MESSAGEDLG('版本信息文件['+gcVersionInfoFile+']LoadFromStream报错:'+E.Message,mtError,[mbOK],0);
       application.Terminate;
     end;
   end;
