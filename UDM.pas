@@ -27,6 +27,7 @@ var
   DM: TDM;
   giDirOrFileNo:integer;
   gslFileVersion:TStrings;
+  gbIfRestartComputer:boolean;//是否需要重启电脑
 
 function DeCryptStr(aStr: Pchar; aKey: Pchar): Pchar;stdcall;external 'DESCrypt.dll';//解密
 function ShowOptionForm(const pCaption,pTabSheetCaption,pItemInfo,pInifile:Pchar):boolean;stdcall;external 'OptionSetForm.dll';
@@ -180,6 +181,9 @@ var
   //tmpLocalDir:string;
   tmpLocalDir2:string;
 
+  Ini:tinifile;
+  ExeFile:string;
+
   function ifDownLoad(AAIdFTP:TIdFtp;AALocalFile:string):boolean;
   var
     keyName:string;
@@ -299,6 +303,11 @@ begin
 
         KillTask(DirOrFileName);//杀死进程
         Sleep(20);//测试时，最少需要10ms
+
+        Ini := tinifile.Create(ChangeFileExt(Application.ExeName,'.ini'));
+        ExeFile := Ini.ReadString('Interface', '执行文件', '');
+        Ini.Free;
+        if SameText(ExtractFileExt(DirOrFileName),'.exe') and not SameText(ExtractFileName(ExeFile),DirOrFileName) then gbIfRestartComputer:=true;//如小蝴蝶程序
 
         try
           AIdFTP.Get(DirOrFileName,tmpLocalDir2+ARemoteDir+'\'+DirOrFileName,true,false);

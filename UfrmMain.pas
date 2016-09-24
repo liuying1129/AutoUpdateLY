@@ -104,6 +104,8 @@ begin
   
   MakeExeFile;
 
+  if gbIfRestartComputer then MESSAGEDLG('强烈建议重新启动电脑',mtWarning,[mbOK],0);
+
   application.Terminate;
 end;
 
